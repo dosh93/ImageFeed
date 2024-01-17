@@ -7,7 +7,7 @@
 
 import Foundation
 
-class OAuth2Service {
+final class OAuth2Service {
 
     func fetchAuthToken(code: String, completion: @escaping (Result<String, Error>) -> Void) {
         let url = URL(string: "https://unsplash.com/oauth/token")!
@@ -15,9 +15,9 @@ class OAuth2Service {
         let parameters = [
             "grant_type": "authorization_code",
             "code": code,
-            "client_id": AccessKey,
-            "client_secret": SecretKey,
-            "redirect_uri": RedirectURI,
+            "client_id": accessKey,
+            "client_secret": secretKey,
+            "redirect_uri": redirectURI,
         ]
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
