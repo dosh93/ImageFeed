@@ -59,6 +59,7 @@ extension SplashViewController: AuthViewControllerDelegate {
             case .failure(let error):
                 UIBlockingProgressHUD.dismiss()
                 print(error.localizedDescription)
+                self?.showErrorAlert()
             }
         }
     }
@@ -69,12 +70,29 @@ extension SplashViewController: AuthViewControllerDelegate {
                 UIBlockingProgressHUD.dismiss()
                 switch result {
                 case .success:
+                    if let username = ProfileService.shared.profile?.username {
+                        ProfileImageService.shared.fetchProfileImageURL(username: username) { _ in }
+                    } else {
+                        print("username is null")
+                    }
                     self?.switchToTabBarController()
                     UIBlockingProgressHUD.dismiss()
                 case .failure(let error):
                     print(error.localizedDescription)
+                    self?.showErrorAlert()
                 }
             }
+        }
+        
+    }
+}
+
+extension SplashViewController {
+    private func showErrorAlert() {
+        let alert = UIAlertController(title: "Что-то пошло не так(", message: "Не удалось войти в систему", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Ок", style: .default, handler: nil))
+        DispatchQueue.main.async {
+            self.present(alert, animated: true)
         }
     }
 }

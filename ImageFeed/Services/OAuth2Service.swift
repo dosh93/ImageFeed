@@ -10,7 +10,6 @@ import Foundation
 final class OAuth2Service {
 
     private let urlSession = URLSession.shared
-    
     private var task: URLSessionTask?
     private var lastCode: String?
     
@@ -21,28 +20,13 @@ final class OAuth2Service {
         lastCode = code
         
         let request = makeRequest(code: code)
-
-        let task = urlSession.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    self.complete(with: .failure(error), completion: completion)
-                    return
-                }
-
-                guard let httpResponse = response as? HTTPURLResponse, 
-                        200...299 ~= httpResponse.statusCode,
-                        let data = data else {
-                    self.complete(with: .failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response"])), completion: completion)
-                    return
-                }
-
-                do {
-                    let dataString = String(data: data, encoding: .utf8)!
-                    let tokenResponse = try JSONDecoder().decode(OAuthTokenResponseBody.self, from: data)
-                    self.complete(with: .success(tokenResponse.accessToken), completion: completion)
-                } catch {
-                    self.complete(with: .failure(error), completion: completion)
-                }
+        
+        let task = urlSession.objectTask(for: request) { [weak self] (result: Result<OAuthTokenResponseBody, Error>) in
+            switch result {
+            case .success(let tokenResponse):
+                self?.complete(with: .success(tokenResponse.accessToken), completion: completion)
+            case .failure(let error):
+                self?.complete(with: .failure(error), completion: completion)
             }
         }
         self.task = task

@@ -21,28 +21,14 @@ final class ProfileService {
         
         let request = makeRequest(token: token)
         
-        let task = urlSession.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    self.complete(with: .failure(error), completion: completion)
-                    return
-                }
-
-                guard let httpResponse = response as? HTTPURLResponse,
-                        200...299 ~= httpResponse.statusCode,
-                        let data = data else {
-                    self.complete(with: .failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response"])), completion: completion)
-                    return
-                }
-
-                do {
-                    let profileResponse = try JSONDecoder().decode(ProfileResult.self, from: data)
-                    let profile = Profile(username: profileResponse.username, name: "\(profileResponse.firstName) \(profileResponse.lastName)", loginName: "@\(profileResponse.username)", bio: profileResponse.bio)
-                    self.profile = profile
-                    self.complete(with: .success(profile), completion: completion)
-                } catch {
-                    self.complete(with: .failure(error), completion: completion)
-                }
+        let task = urlSession.objectTask(for: request) { [weak self] (result: Result<ProfileResult, Error>) in
+            switch result {
+            case .success(let profileResponse):
+                let profile = Profile(username: profileResponse.username, name: "\(profileResponse.firstName) \(profileResponse.lastName)", loginName: "@\(profileResponse.username)", bio: profileResponse.bio)
+                self?.profile = profile
+                self?.complete(with: .success(profile), completion: completion)
+            case .failure(let error):
+                self?.complete(with: .failure(error), completion: completion)
             }
         }
         self.task = task
