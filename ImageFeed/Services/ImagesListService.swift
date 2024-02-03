@@ -35,7 +35,7 @@ final class ImagesListService {
                     return Photo(
                         id: result.id,
                         size: CGSize(width: Double(result.width), height: Double(result.height)),
-                        createdAt: result.createdAt,
+                        createdAt: convertISO8601StringToDate(iso8601String: result.createdAt),
                         welcomeDescription: result.description,
                         thumbImageURL: result.urls.thumb,
                         largeImageURL: result.urls.full,
@@ -57,11 +57,15 @@ final class ImagesListService {
     }
     
     private func makeRequest(nextPage: Int) -> URLRequest? {
+         let token = OAuth2TokenStorage().token else {
+            return nil
+        }
         var components = URLComponents(string: "https://api.unsplash.com/photos")
         components?.queryItems = [URLQueryItem(name: "page", value: "\(nextPage)")]
         guard let url = components?.url else { return nil }
         
         var request = URLRequest(url: url)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.httpMethod = "GET"
         
         return request
