@@ -12,6 +12,7 @@ final class ImagesListViewController: UIViewController {
     private let photosName: [String] = Array(0..<20).map{ "\($0)" }
     private let ShowSingleImageSegueIdentifier = "ShowSingleImage"
     @IBOutlet private var tableView: UITableView!
+    private let imagesListService = ImagesListService()
     
     private lazy var dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -91,6 +92,16 @@ extension ImagesListViewController: UITableViewDataSource {
         let likeImage = isLiked ? UIImage(named: "like_on") : UIImage(named: "like_off")
         
         cell.likeButton.setImage(likeImage, for: .normal)
+    }
+    
+    func tableView(
+      _ tableView: UITableView,
+      willDisplay cell: UITableViewCell,
+      forRowAt indexPath: IndexPath
+    ) {
+        if (indexPath.row + 1 == photosName.count) {
+            imagesListService.fetchPhotosNextPage()
+        }
     }
     
 }
