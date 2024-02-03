@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Kingfisher
 
 class ProfileViewController: UIViewController {
     
@@ -17,25 +18,42 @@ class ProfileViewController: UIViewController {
    
     private var mainFont = UIFont.systemFont(ofSize: 13, weight: .regular)
     private var headerFont = UIFont.systemFont(ofSize: 23, weight: .bold)
+    private let profileService = ProfileService.shared
+    private var profileImageServiceObserver: NSObjectProtocol?
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         initAvatar()
         initName()
         initTag()
         initDescription()
         initLogout()
+        
+        profileImageServiceObserver = NotificationCenter.default.addObserver(forName: ProfileImageService.didChangeNotification, object: nil, queue: .main) { [weak self] _ in
+            guard let self = self else { return }
+            self.updateAvatar()
+        }
+        updateAvatar()
     }
     
     @objc
     func clickLogoutButton(_ sender: Any) {
     }
     
+    private func updateAvatar() {
+        guard
+            let profileImageUrl = ProfileImageService.shared.avatarURL,
+            let url  = URL(string: profileImageUrl)
+        else { return }
+        let processor = RoundCornerImageProcessor(cornerRadius: 20)
+        avatarImage.kf.setImage(with: url, placeholder: UIImage(named: "profile_photo"), options: [.processor(processor)])
+    }
+    
     func initAvatar() {
         avatarImage.translatesAutoresizingMaskIntoConstraints = false
         
         view.addSubview(avatarImage)
+        
         avatarImage.image = UIImage(named: "profile_photo")
         
         NSLayoutConstraint.activate([
@@ -51,7 +69,7 @@ class ProfileViewController: UIViewController {
         
         view.addSubview(nameLabel)
         
-        nameLabel.text = "Екатерина Новикова"
+        nameLabel.text = profileService.profile?.name
         nameLabel.font = headerFont
         nameLabel.textColor = .ypWhite
         
@@ -66,7 +84,7 @@ class ProfileViewController: UIViewController {
         
         view.addSubview(tagLabel)
         
-        tagLabel.text = "@ekaterina_nov"
+        tagLabel.text = profileService.profile?.username
         tagLabel.font = mainFont
         tagLabel.textColor = .ypGray
         
@@ -81,7 +99,7 @@ class ProfileViewController: UIViewController {
         
         view.addSubview(descriptionLabel)
         
-        descriptionLabel.text = "Hello, world!"
+        descriptionLabel.text = profileService.profile?.bio
         descriptionLabel.font = mainFont
         descriptionLabel.textColor = .ypWhite
         
@@ -110,4 +128,5 @@ class ProfileViewController: UIViewController {
             logoutButton.centerYAnchor.constraint(equalTo: avatarImage.centerYAnchor)
         ])
     }
+    
 }
