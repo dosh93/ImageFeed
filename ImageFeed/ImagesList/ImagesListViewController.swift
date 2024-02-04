@@ -10,7 +10,6 @@ import Kingfisher
 
 final class ImagesListViewController: UIViewController {
 
-    private let photosName: [String] = Array(0..<20).map{ "\($0)" }
     var photos: [Photo] = []
     private let ShowSingleImageSegueIdentifier = "ShowSingleImage"
     @IBOutlet private var tableView: UITableView!
@@ -41,8 +40,7 @@ final class ImagesListViewController: UIViewController {
         if segue.identifier == ShowSingleImageSegueIdentifier {
             let viewController = segue.destination as! SingleImageViewController
             let indexPath = sender as! IndexPath
-            let image = UIImage(named: photosName[indexPath.row])
-            viewController.image = image
+            viewController.imageURL = URL(string: photos[indexPath.row].largeImageURL)
         } else {
             super.prepare(for: segue, sender: sender)
         }
@@ -81,6 +79,7 @@ extension ImagesListViewController: UITableViewDataSource {
         guard let imageListCell = cell as? ImagesListCell else {
             return UITableViewCell()
         }
+        imageListCell.delegate = self
         
         configCell(for: imageListCell, with: indexPath)
         return imageListCell
@@ -89,19 +88,25 @@ extension ImagesListViewController: UITableViewDataSource {
     func configCell(for cell: ImagesListCell, with indexPath: IndexPath) {
         let url  = URL(string: photos[indexPath.row].thumbImageURL)
         cell.cellImage.kf.indicatorType = .activity
+        cell.cellImage.contentMode = .center
         cell.cellImage.kf.setImage(
             with: url,
             placeholder: UIImage(named: "placeholder_image"),
             options: []) { result in
+                cell.cellImage.contentMode = .scaleAspectFill
               self.tableView.reloadRows(at: [indexPath], with: .automatic)
             }
         
-        let currentDate = dateFormatter.string(from: Date())
+        if (photos[indexPath.row].createdAt == nil) {
+            cell.dateLabel.text = ""
+        } else {
+            let currentDate = dateFormatter.string(from: photos[indexPath.row].createdAt!)
+            dateFormatter.dateStyle = .medium
+            dateFormatter.timeStyle = .none
+            cell.dateLabel.text = currentDate
+        }
         
-        cell.dateLabel.text = currentDate
-        
-        let isLiked = indexPath.row % 2 == 0
-        let likeImage = isLiked ? UIImage(named: "like_on") : UIImage(named: "like_off")
+        let likeImage = photos[indexPath.row].isLiked ? UIImage(named: "like_on") : UIImage(named: "like_off")
         
         cell.likeButton.setImage(likeImage, for: .normal)
     }
@@ -123,6 +128,33 @@ extension ImagesListViewController: UITableViewDataSource {
                 }
                 tableView.insertRows(at: indexPaths, with: .automatic)
             } completion: { _ in }
+        }
+    }
+}
+
+extension ImagesListViewController: ImagesListCellDelegate {
+    func imageListCellDidTapLike(_ cell: ImagesListCell) {
+        guard let indexPath = tableView.indexPath(for: cell) else { return }
+        let photo = photos[indexPath.row]
+        UIBlockingProgressHUD.show()
+        imagesListService.changeLike(photoId: photo.id, isLike: !photo.isLiked) { result in
+            switch result {
+            case .success:
+                self.photos = self.imagesListService.photos
+                cell.setIsLiked(like: self.photos[indexPath.row].isLiked)
+                UIBlockingProgressHUD.dismiss()
+            case .failure:
+                UIBlockingProgressHUD.dismiss()
+                self.showErrorAlert()
+            }
+        }
+    }
+    
+    private func showErrorAlert() {
+        let alert = UIAlertController(title: "Что-то пошло не так(", message: "Не удалось поставить/снять лайк", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Ок", style: .default, handler: nil))
+        DispatchQueue.main.async {
+            self.present(alert, animated: true)
         }
     }
 }

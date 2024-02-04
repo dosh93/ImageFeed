@@ -49,6 +49,9 @@
                                                     <rect key="frame" x="347" y="4" width="30" height="30"/>
                                                     <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                                     <state key="normal" image="Active"/>
+                                                    <connections>
+                                                        <action selector="likeButtonClicked" destination="wNo-KF-Aaa" eventType="touchUpInside" id="Ak1-t6-P0C"/>
+                                                    </connections>
                                                 </button>
                                             </subviews>
                                             <constraints>

@@ -13,11 +13,12 @@ final class ImagesListService {
     private var lastLoadedPage: Int?
     static let didChangeNotification = Notification.Name(rawValue: "ImagesListServiceDidChange")
     private let urlSession = URLSession.shared
-    private var task: URLSessionTask?
+    private var taskFetchPhotos: URLSessionTask?
+    private var taskLike: URLSessionTask?
     
     func fetchPhotosNextPage() {
         
-        if (task != nil) { return }
+        if (taskFetchPhotos != nil) { return }
         
         let nextPage = lastLoadedPage == nil
         ? 1
@@ -46,14 +47,74 @@ final class ImagesListService {
                     self?.photos.append(contentsOf: newPhotos)
                     self?.lastLoadedPage = nextPage
                     NotificationCenter.default.post(name: ImagesListService.didChangeNotification, object: self, userInfo: ["photos": self?.photos])
-                    self?.task = nil
+                    self?.taskFetchPhotos = nil
                 }
             case .failure(let error):
                 print("Ошибка при загрузке фотографий: \(error)")
+                self?.taskFetchPhotos = nil
             }
         }
-        self.task = task
+        self.taskFetchPhotos = task
         task.resume()
+    }
+    
+    func changeLike(photoId: String, isLike: Bool, _ completion: @escaping (Result<Void, Error>) -> Void) {
+        if (taskLike != nil) { return }
+        
+        guard let request = makeRequest(photoId: photoId, isLike: isLike) else {
+            print("Не удалось создать запрос")
+            return
+        }
+        
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    completion(.failure(error))
+                    return
+                }
+                
+                guard let httpResponse = response as? HTTPURLResponse,
+                      200..<300 ~= httpResponse.statusCode,
+                      let data = data else {
+                    completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response"])))
+                    return
+                }
+                if let index = self.photos.firstIndex(where: { $0.id == photoId }) {
+                    let photo = self.photos[index]
+                    let newPhoto = Photo(
+                        id: photo.id,
+                        size: photo.size,
+                        createdAt: photo.createdAt,
+                        welcomeDescription: photo.welcomeDescription,
+                        thumbImageURL: photo.thumbImageURL,
+                        largeImageURL: photo.largeImageURL,
+                        isLiked: !photo.isLiked
+                    )
+                    self.photos[index] = newPhoto
+                }
+                self.taskLike = nil
+                completion(.success(()))
+            }
+        }
+            
+        self.taskLike = task
+        task.resume()
+    }
+    
+    private func makeRequest(photoId: String, isLike: Bool) -> URLRequest? {
+        guard let token = OAuth2TokenStorage().token else {
+            return nil
+        }
+        var components = URLComponents(string: "https://api.unsplash.com/photos/\(photoId)/like")
+        guard let url = components?.url else { return nil }
+        
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        
+        if (isLike) { request.httpMethod = "POST" }
+        else { request.httpMethod = "DELETE" }
+        
+        return request
     }
     
     private func makeRequest(nextPage: Int) -> URLRequest? {

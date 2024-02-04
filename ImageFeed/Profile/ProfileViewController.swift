@@ -38,6 +38,26 @@ class ProfileViewController: UIViewController {
     
     @objc
     func clickLogoutButton(_ sender: Any) {
+        let alert = UIAlertController(title: "Пока, пока!", message: "Уверены что хотите выйти?", preferredStyle: .alert)
+
+        let logoutAction = UIAlertAction(title: "Да", style: .destructive) { _ in
+
+            OAuth2TokenStorage().token = nil
+            clean()
+
+            guard let window = UIApplication.shared.windows.first else { return }
+            window.rootViewController = SplashViewController()
+            window.makeKeyAndVisible()
+        }
+        alert.addAction(logoutAction)
+
+        let cancelAction = UIAlertAction(title: "Нет", style: .cancel)
+        alert.addAction(cancelAction)
+
+        DispatchQueue.main.async {
+            self.present(alert, animated: true)
+        }
+        
     }
     
     private func updateAvatar() {
