@@ -9,13 +9,13 @@ import Foundation
 
 struct PhotoResult: Codable {
     let id: String
-    let createdAt: Date
+    let createdAt: String
     let width: Int64
     let height: Int64
     let color: String
     let likes: Int
     let likedByUser: Bool
-    let description: String
+    let description: String?
     let urls: UrlsResult
     
     enum CodingKeys: String, CodingKey {

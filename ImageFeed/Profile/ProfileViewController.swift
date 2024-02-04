@@ -45,8 +45,7 @@ class ProfileViewController: UIViewController {
             let profileImageUrl = ProfileImageService.shared.avatarURL,
             let url  = URL(string: profileImageUrl)
         else { return }
-        let processor = RoundCornerImageProcessor(cornerRadius: 20)
-        avatarImage.kf.setImage(with: url, placeholder: UIImage(named: "profile_photo"), options: [.processor(processor)])
+        avatarImage.kf.setImage(with: url, placeholder: UIImage(named: "profile_photo"), options: [])
     }
     
     func initAvatar() {
@@ -61,7 +60,10 @@ class ProfileViewController: UIViewController {
             avatarImage.heightAnchor.constraint(equalToConstant: 70),
             avatarImage.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 32),
             avatarImage.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16)
+            
         ])
+        avatarImage.layer.cornerRadius = 35
+        avatarImage.clipsToBounds = true
     }
     
     func initName() {
