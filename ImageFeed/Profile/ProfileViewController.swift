@@ -43,7 +43,7 @@ class ProfileViewController: UIViewController {
         let logoutAction = UIAlertAction(title: "Да", style: .destructive) { _ in
 
             OAuth2TokenStorage().token = nil
-            clean()
+            DataCleaner.clean()
 
             guard let window = UIApplication.shared.windows.first else { return }
             window.rootViewController = SplashViewController()

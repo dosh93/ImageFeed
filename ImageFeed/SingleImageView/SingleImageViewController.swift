@@ -7,7 +7,7 @@
 
 import UIKit
 
-class SingleImageViewController: UIViewController {
+final class SingleImageViewController: UIViewController {
     var imageURL: URL?
     
     @IBOutlet weak var scrollView: UIScrollView!
@@ -64,7 +64,7 @@ class SingleImageViewController: UIViewController {
         scrollView.setContentOffset(CGPoint(x: x, y: y), animated: false)
     }
     
-    @IBAction func didTapShareButton(_ sender: Any) {
+    @IBAction private func didTapShareButton(_ sender: Any) {
         guard let imageToShare = imageView.image else { return }
 
         let activityViewController = UIActivityViewController(activityItems: [imageToShare], applicationActivities: nil)
