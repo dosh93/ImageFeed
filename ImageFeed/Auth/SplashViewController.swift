@@ -27,7 +27,6 @@ final class SplashViewController: UIViewController {
             switchToTabBarController()
         } else {
             switchToAuthViewController()
-            //performSegue(withIdentifier: showAuthenticationScreenSegueIdentifier, sender: nil)
         }
     }
     

@@ -38,6 +38,26 @@ class ProfileViewController: UIViewController {
     
     @objc
     func clickLogoutButton(_ sender: Any) {
+        let alert = UIAlertController(title: "Пока, пока!", message: "Уверены что хотите выйти?", preferredStyle: .alert)
+
+        let logoutAction = UIAlertAction(title: "Да", style: .destructive) { _ in
+
+            OAuth2TokenStorage().token = nil
+            DataCleaner.clean()
+
+            guard let window = UIApplication.shared.windows.first else { return }
+            window.rootViewController = SplashViewController()
+            window.makeKeyAndVisible()
+        }
+        alert.addAction(logoutAction)
+
+        let cancelAction = UIAlertAction(title: "Нет", style: .cancel)
+        alert.addAction(cancelAction)
+
+        DispatchQueue.main.async {
+            self.present(alert, animated: true)
+        }
+        
     }
     
     private func updateAvatar() {
@@ -45,8 +65,7 @@ class ProfileViewController: UIViewController {
             let profileImageUrl = ProfileImageService.shared.avatarURL,
             let url  = URL(string: profileImageUrl)
         else { return }
-        let processor = RoundCornerImageProcessor(cornerRadius: 20)
-        avatarImage.kf.setImage(with: url, placeholder: UIImage(named: "profile_photo"), options: [.processor(processor)])
+        avatarImage.kf.setImage(with: url, placeholder: UIImage(named: "profile_photo"), options: [])
     }
     
     func initAvatar() {
@@ -61,7 +80,10 @@ class ProfileViewController: UIViewController {
             avatarImage.heightAnchor.constraint(equalToConstant: 70),
             avatarImage.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 32),
             avatarImage.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16)
+            
         ])
+        avatarImage.layer.cornerRadius = 35
+        avatarImage.clipsToBounds = true
     }
     
     func initName() {
