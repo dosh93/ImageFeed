@@ -147,6 +147,7 @@ class ProfileViewController: UIViewController, ProfileViewControllerProtocol {
         )
         
         logoutButton.translatesAutoresizingMaskIntoConstraints = false
+        logoutButton.accessibilityIdentifier = "logout button"
         
         view.addSubview(logoutButton)
         

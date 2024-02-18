@@ -16,10 +16,12 @@ protocol AlertHelperProtocol {
 class AlertHelper: AlertHelperProtocol {
     func createLogoutAlert(confirmAction: @escaping () -> Void) -> UIAlertController {
         let alert = UIAlertController(title: "Пока, пока!", message: "Уверены что хотите выйти?", preferredStyle: .alert)
-
+        
         let logoutAction = UIAlertAction(title: "Да", style: .destructive) { _ in
             confirmAction()
         }
+        logoutAction.accessibilityIdentifier = "Yes"
+        
         alert.addAction(logoutAction)
 
         let cancelAction = UIAlertAction(title: "Нет", style: .cancel)
