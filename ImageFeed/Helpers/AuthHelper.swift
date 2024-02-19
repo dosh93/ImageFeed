@@ -13,7 +13,7 @@ protocol AuthHelperProtocol {
     func logout(completion: @escaping () -> Void)
 }
 
-class AuthHelper: AuthHelperProtocol {
+final class AuthHelper: AuthHelperProtocol {
     let configuration: AuthConfiguration
     
     init(configuration: AuthConfiguration = .standard) {

@@ -63,7 +63,8 @@ class ProfileViewController: UIViewController, ProfileViewControllerProtocol {
     }
 
     func updateTag(_ tag: String?) {
-        tagLabel.text = tag
+        let tag = tag ?? ""
+        tagLabel.text = "@\(tag)"
     }
 
     func updateDescription(_ description: String?) {

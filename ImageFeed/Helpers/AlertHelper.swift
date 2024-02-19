@@ -13,7 +13,7 @@ protocol AlertHelperProtocol {
     func createErrorAlert(message: String) -> UIAlertController
 }
 
-class AlertHelper: AlertHelperProtocol {
+final class AlertHelper: AlertHelperProtocol {
     func createLogoutAlert(confirmAction: @escaping () -> Void) -> UIAlertController {
         let alert = UIAlertController(title: "Пока, пока!", message: "Уверены что хотите выйти?", preferredStyle: .alert)
         

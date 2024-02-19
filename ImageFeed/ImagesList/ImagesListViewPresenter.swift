@@ -57,7 +57,8 @@ final class ImagesListViewPresenter: ImagesListViewPresenterProtocol {
     
     private func showErrorAlert() {
         let alert = alertHelper.createErrorAlert(message: "Не удалось поставить/снять лайк")
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
             self.viewController?.present(alert, animated: true, completion: nil)
         }
     }

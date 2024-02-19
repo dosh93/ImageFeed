@@ -62,8 +62,8 @@ class ProfileViewPresenter: ProfileViewPresenterProtocol {
             }
         }
 
-        DispatchQueue.main.async {
-            self.viewController?.present(alert, animated: true, completion: nil)
+        DispatchQueue.main.async { [weak self] in
+            self?.viewController?.present(alert, animated: true, completion: nil)
         }
     }
 

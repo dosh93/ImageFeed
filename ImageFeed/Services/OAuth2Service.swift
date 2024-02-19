@@ -38,9 +38,9 @@ final class OAuth2Service {
         let parameters = [
             "grant_type": "authorization_code",
             "code": code,
-            "client_id": AccessKey,
-            "client_secret": SecretKey,
-            "redirect_uri": RedirectURI,
+            "client_id": ApiConstants.accessKey,
+            "client_secret": ApiConstants.secretKey,
+            "redirect_uri": ApiConstants.redirectURI,
         ]
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
