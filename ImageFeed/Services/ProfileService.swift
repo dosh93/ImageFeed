@@ -7,13 +7,18 @@
 
 import Foundation
 
-final class ProfileService {
+public protocol ProfileServiceProtocol {
+    var profile: Profile? { get set }
+    func fetchProfile(_ token: String, completion: @escaping (Result<Profile, Error>) -> Void)
+}
+
+final class ProfileService: ProfileServiceProtocol {
     
     static let shared = ProfileService()
     private let urlSession = URLSession.shared
     
     private var task: URLSessionTask?
-    private(set) var profile: Profile?
+    var profile: Profile?
     
     func fetchProfile(_ token: String, completion: @escaping (Result<Profile, Error>) -> Void) {
         assert(Thread.isMainThread)

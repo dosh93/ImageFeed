@@ -8,7 +8,18 @@
 import UIKit
 import Kingfisher
 
-class ProfileViewController: UIViewController {
+public protocol ProfileViewControllerProtocol: AnyObject {
+    var presenter: ProfileViewPresenterProtocol? { get set }
+    func updateAvatar(with url: URL)
+    func updateName(_ name: String?)
+    func updateTag(_ tag: String?)
+    func updateDescription(_ description: String?)
+    func present(_ viewControllerToPresent: UIViewController, animated flag: Bool, completion: (() -> Void)?)
+    func configure(_ presenter: ProfileViewPresenterProtocol)
+}
+
+
+class ProfileViewController: UIViewController, ProfileViewControllerProtocol {
     
     private var logoutButton: UIButton!
     private var descriptionLabel: UILabel = UILabel()
@@ -18,55 +29,52 @@ class ProfileViewController: UIViewController {
    
     private var mainFont = UIFont.systemFont(ofSize: 13, weight: .regular)
     private var headerFont = UIFont.systemFont(ofSize: 23, weight: .bold)
-    private let profileService = ProfileService.shared
-    private var profileImageServiceObserver: NSObjectProtocol?
+    var presenter: ProfileViewPresenterProtocol?
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        initUI()
+        presenter?.loadProfileData()
+    }
+    
+    func configure(_ presenter: ProfileViewPresenterProtocol) {
+        self.presenter = presenter
+    }
+    
+    private func initUI() {
         initAvatar()
         initName()
         initTag()
         initDescription()
         initLogout()
-        
-        profileImageServiceObserver = NotificationCenter.default.addObserver(forName: ProfileImageService.didChangeNotification, object: nil, queue: .main) { [weak self] _ in
-            guard let self = self else { return }
-            self.updateAvatar()
-        }
-        updateAvatar()
     }
     
     @objc
     func clickLogoutButton(_ sender: Any) {
-        let alert = UIAlertController(title: "Пока, пока!", message: "Уверены что хотите выйти?", preferredStyle: .alert)
-
-        let logoutAction = UIAlertAction(title: "Да", style: .destructive) { _ in
-
-            OAuth2TokenStorage().token = nil
-            DataCleaner.clean()
-
-            guard let window = UIApplication.shared.windows.first else { return }
-            window.rootViewController = SplashViewController()
-            window.makeKeyAndVisible()
-        }
-        alert.addAction(logoutAction)
-
-        let cancelAction = UIAlertAction(title: "Нет", style: .cancel)
-        alert.addAction(cancelAction)
-
-        DispatchQueue.main.async {
-            self.present(alert, animated: true)
-        }
-        
+        presenter?.logoutUser()
     }
     
-    private func updateAvatar() {
-        guard
-            let profileImageUrl = ProfileImageService.shared.avatarURL,
-            let url  = URL(string: profileImageUrl)
-        else { return }
+    func updateAvatar(with url: URL) {
         avatarImage.kf.setImage(with: url, placeholder: UIImage(named: "profile_photo"), options: [])
     }
+
+    func updateName(_ name: String?) {
+        nameLabel.text = name
+    }
+
+    func updateTag(_ tag: String?) {
+        let tag = tag ?? ""
+        tagLabel.text = "@\(tag)"
+    }
+
+    func updateDescription(_ description: String?) {
+        descriptionLabel.text = description
+    }
+    
+    override func present(_ viewControllerToPresent: UIViewController, animated flag: Bool, completion: (() -> Void)?) {
+        super.present(viewControllerToPresent, animated: flag, completion: completion)
+    }
+    
     
     func initAvatar() {
         avatarImage.translatesAutoresizingMaskIntoConstraints = false
@@ -91,7 +99,7 @@ class ProfileViewController: UIViewController {
         
         view.addSubview(nameLabel)
         
-        nameLabel.text = profileService.profile?.name
+        nameLabel.text = ""
         nameLabel.font = headerFont
         nameLabel.textColor = .ypWhite
         
@@ -106,7 +114,7 @@ class ProfileViewController: UIViewController {
         
         view.addSubview(tagLabel)
         
-        tagLabel.text = profileService.profile?.username
+        tagLabel.text = ""
         tagLabel.font = mainFont
         tagLabel.textColor = .ypGray
         
@@ -121,7 +129,7 @@ class ProfileViewController: UIViewController {
         
         view.addSubview(descriptionLabel)
         
-        descriptionLabel.text = profileService.profile?.bio
+        descriptionLabel.text = ""
         descriptionLabel.font = mainFont
         descriptionLabel.textColor = .ypWhite
         
@@ -140,6 +148,7 @@ class ProfileViewController: UIViewController {
         )
         
         logoutButton.translatesAutoresizingMaskIntoConstraints = false
+        logoutButton.accessibilityIdentifier = "logout button"
         
         view.addSubview(logoutButton)
         
